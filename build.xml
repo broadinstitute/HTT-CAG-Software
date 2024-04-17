@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<project name="HTTCAGSoftware" basedir="." default="all">
+
+    <include file="version.xml" as="version.props."/>
+    <property name="build.version" value="${version.props.build.version}"/>
+    <property name="build.revision" value="${version.props.build.revision}"/>
+
+    <property name="libname" value="HTTCAGSoftware"/>
+    <property name="library" value="HTTCAGSoftware.jar"/>
+
+    <property name="src" value="src/java"/>
+    <property name="src.test" value="src/test/java"/>
+    <property name="lib" value="lib"/>
+    <property name="dist" value="dist"/>
+    <property name="temp" value="temp"/>
+    <property name="release" value="release"/>
+    <property name="classes" value="classes"/>
+    <property name="classes.test" value="test/classes"/>
+    <property name="test.output" value="test/output"/>
+    <property name="javac.debug" value="true"/>
+
+<!-- All -->
+    <target name="all" depends="library" description="Default build target"/>
+
+<!-- Init -->
+    <target name="init">
+        <tstamp>
+	    <format property="build.timestamp" pattern="yyyy/MM/dd HH:mm:ss"/>
+        </tstamp>
+        <path id="classpath">
+	    <fileset dir="svtoolkit/lib">
+                <include name="**/*.jar"/>
+            </fileset>
+	    <pathelement path="${classes}"/>
+        </path>
+        <path id="classpath.test">
+            <path refid="classpath"/>
+            <pathelement path="${dist}/${library}"/>
+	    <pathelement path="${classes.test}"/>
+            <fileset dir="svtoolkit/lib">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+        <path id="classpath.jar">
+            <fileset dir="svtoolkit/lib">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+<!-- Library -->
+    <target name="library" depends="build-jar, copy-scripts">
+    </target>
+
+    <target name="build-jar" depends="init, jar">
+    </target>
+
+    <target name="copy-scripts" depends="init">
+        <mkdir dir="${dist}/R"/>
+        <copy todir="${dist}/R">
+            <fileset dir="src/R" includes="**/*.R"/>
+        </copy>
+    </target>
+
+<!-- Compile -->
+    <target name="compile" depends="compile-src"
+            description="Compile files without cleaning">
+    </target>
+
+    <target name="compile-src" depends="init"
+            description="Compile files without cleaning">
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}"
+               includeantruntime="false"
+               optimize="${javac.opt}"
+               debug="${javac.debug}">
+            <!--<compilerarg value="-Xlint:all"/>-->
+            <compilerarg value="-Xlint:unchecked"/>
+            <compilerarg value="-Xlint:deprecation"/>
+            <src path="${src}"/>
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="compile-tests" depends="init"
+            description="Compile test files without cleaning">
+        <mkdir dir="test/classes"/>
+        <javac destdir="test/classes"
+               includeantruntime="false"
+               optimize="${javac.opt}"
+               debug="${javac.debug}">
+            <!--<compilerarg value="-Xlint:all"/>-->
+            <compilerarg value="-Xlint:unchecked"/>
+            <compilerarg value="-Xlint:deprecation"/>
+            <src path="src/test"/>
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+<!-- Jar -->
+    <property name="version" value="version"/>
+    <target name="jar" depends="compile, versionstamp">
+        <mkdir dir="${dist}"/>
+        <pathconvert property="classpath.manifest" refid="classpath.jar" pathsep=" ">
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*.jar" to="depend/*.jar"/>
+            </chainedmapper>
+        </pathconvert>
+        <jar jarfile="${dist}/${library}" roundup="false" manifest="${src}/META-INF/MANIFEST.MF">
+            <fileset dir="${version}">
+                <include name="LibraryVersion.txt"/>
+            </fileset>
+            <fileset dir="${classes}">
+                <include name="org/broadinstitute/sv/**/*.class"/>
+            </fileset>
+            <manifest>
+                <attribute name="Class-Path" value="${classpath.manifest}"/>
+            </manifest>
+        </jar>
+    </target>
+
+<!-- Test -->
+    <target name="test" depends="jar" description="Run unit tests">
+        <taskdef resource="testngtasks" classpathref="classpath.test"/>
+        <testng suitename="unit-tests" classpathref="classpath.test" outputdir="${test.output}"
+                failureproperty="tests.failed" excludedgroups="slow" verbose="3">
+            <jvmarg value="-Xmx2048M"/>
+            <classfileset dir="${classes.test}">
+                <include name="**/Test*.class"/>
+                <include name="**/*Test.class"/>
+            </classfileset>
+        </testng>
+        <fail if="tests.failed" message="There were failed unit tests"/>
+    </target>
+
+    <target name="single-test"
+            depends="compile, compile-tests"
+            description="Compile and run a single test.">
+        <taskdef resource="testngtasks" classpathref="classpath"/>
+        <fail unless="name" message="Please provide input test: -Dname=..." />
+        <testng suitename="single-test" classpathref="classpath.test" outputdir="${test.output}">
+            <jvmarg value="-Xmx2048M"/>
+            <classfileset dir="${classes.test}">
+                <include name="**/${name}.class"/>
+            </classfileset>
+        </testng>
+    </target>
+
+<!-- SVToolkit dependency -->
+    <target name="svtoolkit" depends="svtoolkit-clone, svtoolkit-build">
+    </target>
+
+    <available file="SVToolkit" property="svtoolkit.exists"/>
+    <target name="svtoolkit-clone" description="Clone svtoolkit from github" unless="svtoolkit.exists">
+      <exec executable="git" failonerror="true">
+        <arg value="clone" />
+        <arg value="git@github.com:broadinstitute/genomestrip-svtoolkit" />
+        <arg value="SVToolkit" />
+      </exec>
+    </target>
+
+    <available file="SVToolkit/dist/SVToolkit.jar" property="svtoolkit.built"/>
+    <target name="svtoolkit-build" depends="svtoolkit-clone" unless="svtoolkit.built" description="Build SVToolkit">
+        <ant antfile="build.xml" dir="SVToolkit" target="gatk" inheritall="false"/>
+        <ant antfile="build.xml" dir="SVToolkit" target="release" inheritall="false"/>
+    </target>
+
+<!-- Clean -->
+    <target name="clean">
+        <delete dir="${dist}"/>
+        <delete dir="${classes}"/>
+        <delete dir="${classes.test}"/>
+        <delete dir="${version}"/>
+        <delete dir="${release}"/>
+        <delete dir="${test.output}"/>
+    </target>
+
+<!-- Versioning -->
+    <target name="versionprops">
+        <exec executable="git" outputproperty="git.hash" failifexecutionfails="true" errorproperty="">
+            <arg value="log"/>
+            <arg value="-1"/>
+            <arg value="--pretty=format:#%H"/>
+        </exec>
+        <exec executable="git" outputproperty="git.short.hash" failifexecutionfails="true" errorproperty="">
+            <arg value="log"/>
+            <arg value="-1"/>
+            <arg value="--pretty=format:#%h"/>
+        </exec>
+        <tstamp>
+            <format property="build.timestamp" pattern="yyyy/MM/dd HH:mm:ss"/>
+        </tstamp>
+        <echo message="Building revision ${build.version} (r${build.revision}-${git.short.hash}) @ ${build.timestamp}"/>
+    </target>
+
+    <target name="versionstamp" depends="versionprops">
+        <mkdir dir="${version}"/>
+        <echo file="${version}/LibraryVersion.txt">${libname}${line.separator}</echo>
+        <echo file="${version}/LibraryVersion.txt" append="true">AppVersion: ${build.version}${line.separator}</echo>
+        <echo file="${version}/LibraryVersion.txt" append="true">BuildRevision: ${build.revision}${line.separator}</echo>
+        <echo file="${version}/LibraryVersion.txt" append="true">GitHash: ${git.hash}${line.separator}</echo>
+        <echo file="${version}/LibraryVersion.txt" append="true">BuildDate: ${build.timestamp}${line.separator}</echo>
+    </target>
+
+</project>
