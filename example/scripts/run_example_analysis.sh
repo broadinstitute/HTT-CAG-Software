@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Output directory
+outDir=out
+
+workspace=".."
+
+if [ ! -e ${workspace}/dist/HTTCAGSoftware.jar ]; then
+    echo "File not found: ${workspace}/dist/HTTCAGSoftware.jar - did you run ant to build the library?"
+    exit 1
+fi
+
+scriptDir="${workspace}/dist/R"
+export SV_DIR="../svtoolkit"
+export SV_CLASSPATH="${workspace}/dist/HTTCAGSoftware.jar:${SV_DIR}/lib/SVToolkit.jar:${SV_DIR}/lib/gatk/GenomeAnalysisTK.jar"
+
 # No reference sequence is supplied with this example code.
 # You can set your own reference file below, of if you do not, this script will attempt to download the GRCh38 "no alt" reference from NCBI.
 # In practice, any GRCh38 reference will work, as long as the main chr1 sequence matches GRCh38.
@@ -41,14 +55,6 @@ if [ "$1" == "full" ]; then
     bamPath=data/${flowcell}.bam
     echo $(date) "Running full flowcell ${bamPath} (this will take several hours) ..."
 fi
-
-# Output directory
-outDir=out
-
-workspace=".."
-scriptDir="${workspace}/dist/R"
-export SV_DIR="../svtoolkit"
-export SV_CLASSPATH="${workspace}/dist/HTTCAGSoftware.jar:${SV_DIR}/lib/SVToolkit.jar:${SV_DIR}/lib/gatk/GenomeAnalysisTK.jar"
 
 # Utility function
 body() {
