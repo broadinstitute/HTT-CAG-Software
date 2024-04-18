@@ -18,6 +18,7 @@
     <property name="classes.test" value="test/classes"/>
     <property name="test.output" value="test/output"/>
     <property name="javac.debug" value="true"/>
+    <property name="svtoolkit.url" value="ftp://ftp.broadinstitute.org/pub/svtoolkit/releases/public/svtoolkit_2.1.1.r2042.tar.gz"/>
 
 <!-- All -->
     <target name="all" depends="library" description="Default build target"/>
@@ -49,7 +50,7 @@
     </target>
 
 <!-- Library -->
-    <target name="library" depends="build-jar, copy-scripts">
+    <target name="library" depends="svtoolkit, build-jar, copy-scripts">
     </target>
 
     <target name="build-jar" depends="init, jar">
@@ -148,22 +149,16 @@
     </target>
 
 <!-- SVToolkit dependency -->
-    <target name="svtoolkit" depends="svtoolkit-clone, svtoolkit-build">
-    </target>
-
-    <available file="SVToolkit" property="svtoolkit.exists"/>
-    <target name="svtoolkit-clone" description="Clone svtoolkit from github" unless="svtoolkit.exists">
-      <exec executable="git" failonerror="true">
-        <arg value="clone" />
-        <arg value="git@github.com:broadinstitute/genomestrip-svtoolkit" />
-        <arg value="SVToolkit" />
-      </exec>
-    </target>
-
-    <available file="SVToolkit/dist/SVToolkit.jar" property="svtoolkit.built"/>
-    <target name="svtoolkit-build" depends="svtoolkit-clone" unless="svtoolkit.built" description="Build SVToolkit">
-        <ant antfile="build.xml" dir="SVToolkit" target="gatk" inheritall="false"/>
-        <ant antfile="build.xml" dir="SVToolkit" target="release" inheritall="false"/>
+    <available file="svtoolkit" property="svtoolkit.exists"/>
+    <target name="svtoolkit" unless="svtoolkit.exists">
+        <basename property="svt.basename" file="${svtoolkit.url}"/>
+        <exec executable="wget" failonerror="true">
+            <arg value="${svtoolkit.url}"/>
+        </exec>
+        <exec executable="tar" failonerror="true">
+            <arg value="xvf"/>
+            <arg value="${svt.basename}"/>
+        </exec>
     </target>
 
 <!-- Clean -->

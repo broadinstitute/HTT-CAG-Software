@@ -9,7 +9,7 @@ The main input is a bam (or cram) file containing the sequenced PacBio reads, al
 
 The software runs in three passes. The first pass processes the reads in the input bam/cram file and emits several tab-delimited output files. The first pass can be parallelized to reduce runtime. The second pass does additional processing the output files from the first pass and emits more text files. The second pass is separated from the first mostly for ease of development. The third pass (written in R) processes the files from the first two passes to gather reads that originate from the same transcript (cell barcode and unique molecular identifier) and performs per-transcript analyses, including estimating the repeat length from the source transcript. The result are tab-delimited text files that are then used for downstream QC and analyses. The first two passes produce "per-read" output; the third pass produces "per-transcript" output.
 
-## Example analysis code/data
+## Example analysis
 A working example is provided in the `example` directory.
 
 By default, the example uses a very small data set, downsampled from a mouse experiment.
@@ -76,18 +76,31 @@ $ scripts/run_example_analysis.sh
 
 R (version 4+)
 
+Java 1.8 (for Genome STRiP)
+
+ant (for building)
+
 Genome STRiP (SVToolkit), r2041 or higher
 https://software.broadinstitute.org/software/genomestrip/
 
-Java 1.8 (for Genome STRiP)
+Genome STRiP should be downloaded automatically during the build process.
+
+#### Building the library
+
+The software components are currently built using ant. Once ant is installed, you can build the release (jar, scripts, etc.) using
+
+```
+$ ant
+```
 
 #### Reference sequence
 
 Before the example code can be run, you need to have a local copy of a GRCh38 reference genome, which is not provided.
-You have several options.
+
 By default, the script will attempt to download a reference sequence from NCBI and cache it locally in the `reference` directory.
 Alternatively, you can modify the script `scripts/run_example_analysis.sh` to supply a local copy of the reference genome.
-The file must be unzipped and indexed using `samtools faidx`.
+The reference file must be unzipped and indexed using `samtools faidx`.
+
 Technically, the reference file should be the GRCh38 "no alt" fasta file which was used to align the pacbio data.
 In practice, any GRCh38 reference sequence will work, including one with alt contigs and decoy sequences, so long as the primary chr1 sequence is the same as GRCh38.
 
@@ -171,9 +184,9 @@ $ scripts/run_example_analysis.sh full
 Note that unlike the downsampled bam, this analysis may take 5 or 6 hours if the processing is not parallelized.
 It will, however, produce more realistic and useful output. The downsampled bam produces no UMIs that pass the default quality thresholds.
 
-When running a full analysis, it can be useful to parallelize the first decoding step (PBSCAnalyzer). This first pass processes each input read separately. The software has some built-in features to make it easy to do simple parallel processing on the reads from a single flowcell, for example on a compute cluster or on the cloud.
+When running a full analysis, it can be useful to parallelize the first decoding step (PBSCHTTAnalyzer). This first pass processes each input read separately. The software has some built-in features to make it easy to do simple parallel processing on the reads from a single flowcell, for example on a compute cluster or on the cloud.
 
-PBSCAnalyzer supports an argument `-scatter k@N` which says that the input should be sharded into N equal-sized partitions (logically, not physically), which are numbered from 1 to N, and this invocation should process partition k. Each parallel process reads the entire input file, but the I/O burden is not large for reasonable values of N. The caller is responsible for naming the output files so they do not clash (typically by including k in the output file name).
+PBSCHTTAnalyzer supports an argument `-scatter k@N` which says that the input should be sharded into N equal-sized partitions (logically, not physically), which are numbered from 1 to N, and this invocation should process partition k. Each parallel process reads the entire input file, but the I/O burden is not large for reasonable values of N. The caller is responsible for naming the output files so they do not clash (typically by including k in the output file name).
 
 The example script contains some template code to do the parallelization, although you will have to adapt it to run in your environment.
 In particular, the script `run_queue_scatter.sh` (not supplied) is specific to our local environment and scatters multiple jobs on the local compute cluster (based on the first argument) , then waits for all scattered jobs to complete before returning. The script `pb_analyze_flowcell_decode_gather.sh` can be used to gather the resulting output. In practice, we use this approach to scatter the processing of each flowcell across 10 parallel jobs, plus of course each flowcell can be processed in parallel.
