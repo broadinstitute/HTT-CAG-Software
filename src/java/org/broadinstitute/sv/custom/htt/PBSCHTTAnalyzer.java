@@ -129,14 +129,14 @@ public class PBSCHTTAnalyzer
     // private static final SEQ_P7 = toCharArray("CAAGCAGAAGACGGCATACGAGAT");
     private static final char[] SEQ_P7 = toCharArray("CAAGCAGAAGACGGCATACGAGAT");
     private static final char[] SEQ_P5 = toCharArray("GTGTAGATCTCGGTGGTCGCCGTATCATT");
-    // Adapter 1: GTCTCGTGGGCTCGGAGATGTGTATAAGAGACA
+    // Adapter 1: GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG
     private static final char[] SEQ_ADAPTER1_START = toCharArray("GTCTCGTGGG");
-    private static final char[] SEQ_ADAPTER1_END = toCharArray("ATAAGAGACA");
+    private static final char[] SEQ_ADAPTER1_END = toCharArray("TAAGAGACAG");
     // Adapter 2: AGATCGGAAGAGCGTCGTGTAGCTGTCTCTTATACACATCTGACGCTGCCGACGA
     private static final char[] SEQ_ADAPTER2_START = toCharArray("AGATCGGAAGAG");
     private static final char[] SEQ_ADAPTER2_END = toCharArray("CTGCCGACGA");
 
-    private static final char[] SEQ_EXON1_ANCHOR1 = toCharArray("GCCTTCGAGTCCCTCAAGTCCTCCCAG");
+    private static final char[] SEQ_EXON1_ANCHOR1 = toCharArray("CCTTCGAGTCCCTCAAGTCCTTCCAG");
     private static final char[] SEQ_EXON1_ANCHOR2_START = toCharArray("CCGCCACCGCCGCCGCCG");
     private static final char[] SEQ_EXON1_ANCHOR2_END = toCharArray("GAGCCGCTGCACCGACC");
 
@@ -1429,4 +1429,3 @@ public class PBSCHTTAnalyzer
         public void incrementDecodedCount2() { mDecodedCount2++; }
     }
 }
-

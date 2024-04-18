@@ -242,6 +242,30 @@ run <- function(dataFile, reportFile=NULL) {
     }
     if (!is.null(reportFile)) {
         reportTable = resultTable
+        if (is.null(reportTable)) {
+            # Generate empty header frame
+            reportTable = data.frame(RXN=NA,
+                                     RXNID=NA,
+                                     RAWUMI=NA,
+                                     UMI=NA,
+                                     UMISOURCE=NA,
+                                     NREADS=NA,
+                                     READLENGTH=NA,
+                                     RXNN=NA,
+                                     CATEGORY=NA,
+                                     CATEGORYN=NA,
+                                     REPLENGTH=NA,
+                                     REPLENGTHN=NA,
+                                     REPUNITS=NA,
+                                     REPHASCAA=NA,
+                                     ALIGNSTART=NA,
+                                     ALIGNEND=NA,
+                                     ALIGNN=NA,
+                                     POLYALEN=NA,
+                                     MINDIST=NA,
+                                     OUTLEFT=NA,
+                                     OUTRIGHT=NA)[0,]
+        }
         reportTable$OUTLEFT = sprintf("%1.4f", reportTable$OUTLEFT)
         reportTable$OUTRIGHT = sprintf("%1.4f", reportTable$OUTRIGHT)
         write.table(reportTable, reportFile, row.names=F, quote=F, sep="\t")

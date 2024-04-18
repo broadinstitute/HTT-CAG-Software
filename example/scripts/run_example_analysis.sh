@@ -1,30 +1,54 @@
 #!/bin/bash
 
+# No reference sequence is supplied with this example code.
+# You can set your own reference file below, of if you do not, this script will attempt to download the GRCh38 "no alt" reference from NCBI.
+# In practice, any GRCh38 reference will work, as long as the main chr1 sequence matches GRCh38.
+referenceFile=
+
+localReferenceFile=reference/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
+referenceFileURL="ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz"
+if [ -z "${referenceFile}" -a ! -e "${localReferenceFile}" ]; then
+    echo $(date) "No reference file was set, attempting to download reference file from NCBI ..."
+    mkdir -p reference || exit 1
+    wget -O reference/$(basename ${referenceFileURL}) ${referenceFileURL} || exit 1
+    echo $(date) "Unzipping and indexing reference file ..."
+    gunzip reference/$(basename ${referenceFileURL}) || exit 1
+    samtools faidx ${localReferenceFile} || exit 1
+fi
+if [ -z "${referenceFile}" -a -e "${localReferenceFile}" ]; then
+    referenceFile="${localReferenceFile}"
+else
+    echo $(date) "Error: No reference file was found."
+    exit 1
+fi
+
 rcThreshold=10
 mdThreshold=4
 outRightThreshold=0.20
 
-# Scattered decoding is not implemented in this example analysis
+# Scattered decoding is not fully implemented in this example analysis
 #decodeScatter=10
 decodeScatter=0
 
+# By default, run just a small fraction of the input flowcell (downsampled 1000x).
+# This runs the full pipeline, but there is no useful output as all UMIs fail QC due to having too few reads.
+# If you pass "full" as the first argument, the whole flowcell will be run.
+# This will take several hours (when not scattered), but will produce more sensible output.
+
 flowcell=m64298e_220829_033656
-#bamPath=data/${flowcell}.ds3.bam
-bamPath=data/${flowcell}.bam
+bamPath=data/${flowcell}.ds3.bam
+if [ "$1" == "full" ]; then
+    bamPath=data/${flowcell}.bam
+    echo $(date) "Running full flowcell ${bamPath} (this will take several hours) ..."
+fi
+
+# Output directory
 outDir=out
 
 workspace=".."
 scriptDir="${workspace}/dist/R"
 export SV_DIR="../svtoolkit"
 export SV_CLASSPATH="${workspace}/dist/HTTCAGSoftware.jar:${SV_DIR}/lib/SVToolkit.jar:${SV_DIR}/lib/gatk/GenomeAnalysisTK.jar"
-
-# To run this example, you need to download and supply here a suitable hg38 reference fasta file.
-# Ideally, this should be the GRCh38 "no alt" fasta file which was used to align the pacbio data.
-# ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
-# In practice, any hg38 reference with the same chr1 sequence will work, including the standard GRCh38 reference fasta.
-# Note that although the example data used here is Q111 mouse, this mouse model has a human HTT exon 1 and  mouse data was aligned to a human hg38 reference.
-# The HTT analysis code currently assumes a GRCh38 compatible reference, with respect to the sequence at HTT.
-referenceFile=/humgen/cnp04/svtoolkit/references/Homo_sapiens_assembly38/Homo_sapiens_assembly38.fasta
 
 # Utility function
 body() {

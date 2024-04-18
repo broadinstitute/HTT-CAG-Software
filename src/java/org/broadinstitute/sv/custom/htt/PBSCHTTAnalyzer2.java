@@ -41,7 +41,7 @@ import java.util.*;
 
 
 /**
- * For experimentation: Separate utility to parse PBSCHTTAnalyzer output files and do further exploratory processing.
+ * Separate utility to parse PBSCHTTAnalyzer output files and do further downstream analysis.
  */
 public class PBSCHTTAnalyzer2
     extends CommandLineProgram
