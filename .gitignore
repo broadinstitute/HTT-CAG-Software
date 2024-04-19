@@ -34,3 +34,5 @@ dist
 test
 version
 svtoolkit
+example/reference
+example/out
