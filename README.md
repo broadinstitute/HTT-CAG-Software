@@ -21,8 +21,11 @@ The small example is intended only to provide an example of the overall workflow
 
 The sample data for the example is in the `example/data` directory.
 This is single-nucleus data from mouse striatum and cortex from a Q111 mouse (also known as an HDhQ111-KI mouse) which is a mouse model for HD.
-This mouse model has been genetically altered to contain a (heterozygous) copy of human HTT exon 1 with a repeat length of approximately 111 CAGs.
-For information on HD mouse model can be found here:  https://www.jax.org/strain/003598.
+This mouse model has been genetically altered to contain a heterozygous copy of human HTT exon 1 with a repeat length of approximately 111 CAGs
+(the original mouse has 109 CAGs followed by CAACAG; the number of CAGs is germline unstable).
+More information on this HD mouse model can be found here:  https://www.jax.org/strain/003598.
+
+The mouse strain on the website carries a homozygous copy of HTT exon 1 with approximately 111 CAGs; however, the sequencing data used here are from a heterozygous animal.
 
 To generate the mouse data used here, four 10x reactions were performed, two on mouse striatum and two on mouse cortex, all using the same mouse.
 The data was collected when the mouse was approximately 14 months old.
@@ -104,7 +107,7 @@ The reference file must be unzipped and indexed using `samtools faidx`.
 Technically, the reference file should be the GRCh38 "no alt" fasta file which was used to align the pacbio data.
 In practice, any GRCh38 reference sequence will work, including one with alt contigs and decoy sequences, so long as the primary chr1 sequence is the same as GRCh38.
 
-Note that although the data used in this example is Q111 mouse, this mouse model has a human HTT exon 1 and the PacBio reads were aligned to a human hg38 reference.
+Note that although the data used in this example is Q111 mouse, this mouse model includes a portion of human HTT exon 1 that is targeted for amplification and sequencing, and so the PacBio reads were aligned to a human hg38 reference.
 
 The HTT analysis code currently requires alignment to a GRCh38 compatible reference. Changes to the code would be necessary to use any other reference genone.
 
