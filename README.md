@@ -125,7 +125,8 @@ UMI summary files are tab-delimited files with the following columns:
   <dt>RAWUMI</dt>
   <dd>The decoded UMI sequence as it appeared in the input reads.</dd>
   <dt>UMI</dt>
-  <dd>UMI reformatted to match the format used in transcriptome analysis (CBC.UMI)</dd>
+  <dd>UMI reformatted to match the format used in transcriptome analysis (CBC.UMI).
+      Note that the cell barcoede ("CBC") is the ***reverse complement*** of the cell barcode as assigned by 10x in associated transcriptome data.</dd>
   <dt>UMISOURCE</dt>
   <dd>Either "S" if this UMI is a stamp (from user supplied list) or "T" if based on read threshold or both ("S,T").</dd>
   <dt>NREADS</dt>
